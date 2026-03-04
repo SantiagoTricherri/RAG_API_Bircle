@@ -1,6 +1,6 @@
 # RAG API – FastAPI + LlamaIndex + Qdrant
 
-API REST que implementa un sistema RAG (Retrieval-Augmented Generation) con persistencia de embeddings y vector store en Qdrant.
+API REST que implementa un sistema RAG con persistencia de embeddings y vector store en Qdrant.
 
 ## Arquitectura
 

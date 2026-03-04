@@ -1,0 +1,3 @@
+LlamaIndex es un framework para construir aplicaciones RAG.
+Qdrant es una base de datos vectorial.
+FastAPI permite construir APIs modernas en Python.

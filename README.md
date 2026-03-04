@@ -47,7 +47,8 @@ uvicorn app.main:app --reload
 
 ---
 
-### Uso
+
+# USO
 
 ## Endpoints
 
@@ -77,9 +78,9 @@ Devuelve:
 ### GET /stats
 Información del vector store.
 
+
 ---
 
-### Tests
 
 ## Tests
 
@@ -90,8 +91,6 @@ pytest
 
 
 ---
-
-### Decisiones técnicas
 
 
 ## Decisiones técnicas

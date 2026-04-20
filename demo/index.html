@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexusAI — Moodle Plugin Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:        #1B3A6B;
+      --blue:        #2563EB;
+      --teal:        #10B981;
+      --teal-light:  #D1FAE5;
+      --teal-border: #6EE7B7;
+      --sky-bg:      #F0F9FF;
+      --surface:     #F8FAFC;
+      --card:        #FFFFFF;
+      --border:      #E2E8F0;
+      --text-main:   #0F172A;
+      --text-muted:  #64748B;
+      --error:       #EF4444;
+      --success:     #10B981;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--surface);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Navbar ─── */
+    .navbar {
+      background: var(--navy);
+      height: 56px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      z-index: 100;
+    }
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .brand-logo-img {
+      height: 32px;
+      width: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .brand-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.3px;
+    }
+    .brand-badge {
+      font-size: 10px;
+      font-weight: 600;
+      background: var(--teal);
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 99px;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+    .navbar-spacer { flex: 1; }
+    .navbar-avatar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,.85);
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .avatar-circle {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      border: 2px solid rgba(255,255,255,.2);
+    }
+
+    /* ─── Main ─── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 28px 24px 24px;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .page-header { margin-bottom: 20px; flex-shrink: 0; }
+    .page-title  { font-size: 20px; font-weight: 700; color: var(--navy); }
+    .page-sub    { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ─── Tabs (centered) ─── */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      margin: 0 auto 24px;
+      width: fit-content;
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      padding: 7px 18px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .18s, color .18s, box-shadow .18s;
+    }
+    .tab-btn.active {
+      background: var(--card);
+      color: var(--navy);
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+    .tab-btn:hover:not(.active) { color: var(--text-main); }
+
+    /* ─── Tab panels ─── */
+    .tab-panel { display: none; flex: 1; min-height: 0; flex-direction: column; }
+    .tab-panel.active {
+      display: flex;
+      animation: fadeInUp .22s ease;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Docs panel ─── */
+    .docs-scroll-wrap {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    .docs-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 24px;
+      gap: 20px;
+    }
+
+    /* ─── Card ─── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.05);
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .upload-card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 6px;
+    }
+    .upload-card-icon  { font-size: 32px; line-height: 1; }
+    .upload-card-title { font-size: 18px; font-weight: 700; color: var(--navy); }
+    .upload-card-sub   {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .drop-zone {
+      border: 2px dashed #93C5FD;
+      border-radius: 10px;
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      background: #EFF6FF;
+      transition: border-color .2s, background .2s;
+      margin-bottom: 14px;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--blue); background: #DBEAFE; }
+    .dz-icon  { font-size: 38px; margin-bottom: 10px; display: block; }
+    .dz-text  { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    .dz-text strong { color: var(--text-main); font-weight: 600; }
+    .dz-formats { display: inline-flex; gap: 6px; margin-top: 8px; }
+    .dz-format-badge {
+      font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--card); color: var(--text-muted);
+    }
+    #file-input { display: none; }
+    #selected-file-name {
+      font-size: 13px; color: var(--text-muted);
+      margin-bottom: 14px; min-height: 18px;
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 22px; font-size: 14px; font-weight: 600;
+      border-radius: 8px; border: none; cursor: pointer; font-family: inherit;
+      transition: opacity .15s, transform .1s, box-shadow .15s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn-gradient {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--teal) 100%);
+      color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,.25);
+    }
+    .btn-gradient:hover:not(:disabled) { opacity: .9; box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+
+    .upload-status {
+      margin-top: 14px; font-size: 13.5px;
+      min-height: 20px; font-weight: 500;
+    }
+    .upload-status.success { color: var(--success); }
+    .upload-status.error   { color: var(--error); }
+
+    /* Session doc list */
+    .doc-list { margin-top: 28px; }
+    .doc-list-label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .6px;
+      color: var(--text-muted); margin-bottom: 10px;
+    }
+    .doc-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid #F1F5F9; font-size: 13.5px;
+    }
+    .doc-item:last-child { border-bottom: none; }
+    .doc-file-icon {
+      width: 34px; height: 34px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .doc-file-icon.pdf { background: #FEE2E2; }
+    .doc-file-icon.txt { background: #E0F2FE; }
+    .doc-meta { flex: 1; min-width: 0; }
+    .doc-name { font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-size { font-size: 12px; color: var(--text-muted); }
+    .doc-badge {
+      font-size: 11px; font-weight: 600;
+      background: var(--teal-light); color: #065F46;
+      padding: 3px 10px; border-radius: 99px;
+      border: 1px solid var(--teal-border); flex-shrink: 0;
+    }
+    .doc-list-empty { font-size: 13px; color: var(--text-muted); font-style: italic; }
+
+    /* Indexed material section */
+    .material-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .material-title { font-size: 15px; font-weight: 600; color: var(--navy); }
+    .material-count {
+      font-size: 12px; font-weight: 600;
+      background: #EFF6FF; color: var(--blue);
+      padding: 2px 10px; border-radius: 99px;
+      border: 1px solid #BFDBFE;
+    }
+    .material-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .material-list::-webkit-scrollbar { width: 4px; }
+    .material-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    .material-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-bottom: 1px solid #F1F5F9;
+      font-size: 13.5px;
+    }
+    .material-item:last-child { border-bottom: none; }
+    .material-item-icon { font-size: 16px; flex-shrink: 0; }
+    .material-item-name { font-weight: 500; color: var(--text-main); }
+    .material-empty {
+      padding: 18px 14px;
+      font-size: 13px; color: var(--text-muted); font-style: italic;
+    }
+    .material-loading {
+      padding: 18px 14px;
+      font-size: 13px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ─── Chat panel ─── */
+    .chat-panel-wrap {
+      flex: 1; min-height: 0;
+      display: flex; justify-content: center; align-items: stretch;
+    }
+    .chat-card {
+      display: flex; flex-direction: column;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.07);
+      overflow: hidden;
+      width: 100%; max-width: 900px;
+      flex: 1; min-height: 0;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+      flex-shrink: 0;
+    }
+    .chat-header-logo {
+      height: 36px; width: auto;
+      object-fit: contain; display: block;
+    }
+    .chat-header-info { flex: 1; }
+    .chat-header-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .chat-header-sub  { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 1px; }
+    .online-indicator {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--teal); font-weight: 500;
+    }
+    .online-dot {
+      width: 8px; height: 8px;
+      background: var(--teal); border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(16,185,129,.3);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(16,185,129,.3); }
+      50%       { box-shadow: 0 0 0 5px rgba(16,185,129,.1); }
+    }
+
+    .chat-messages {
+      flex: 1; min-height: 0;
+      overflow-y: auto;
+      padding: 20px;
+      background: var(--surface);
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .chat-messages::-webkit-scrollbar { width: 5px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* Message bubbles */
+    .msg {
+      display: flex; flex-direction: column;
+      max-width: 72%; gap: 5px;
+      animation: bubbleIn .22s ease;
+    }
+    @keyframes bubbleIn {
+      from { opacity: 0; transform: translateY(6px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .msg.user      { align-self: flex-end;   align-items: flex-end; }
+    .msg.assistant { align-self: flex-start; align-items: flex-start; }
+
+    .msg-bubble {
+      padding: 11px 15px; font-size: 14px; line-height: 1.6;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .msg.user .msg-bubble {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--navy) 100%);
+      color: #fff; border-radius: 16px 16px 4px 16px;
+      box-shadow: 0 2px 8px rgba(37,99,235,.25);
+    }
+    .msg.assistant .msg-bubble {
+      background: var(--card); color: var(--text-main);
+      border-radius: 16px 16px 16px 4px;
+      border-left: 3px solid var(--teal);
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+    .msg-time { font-size: 11px; color: var(--text-muted); padding: 0 4px; }
+
+    /* Sources accordion — simplified */
+    .sources-accordion { margin-top: 4px; }
+    .sources-toggle {
+      font-size: 12px; color: #0369A1;
+      background: var(--sky-bg); border: 1px solid #BAE6FD;
+      border-radius: 6px; padding: 4px 11px;
+      cursor: pointer; font-weight: 500; font-family: inherit;
+      transition: background .15s;
+    }
+    .sources-toggle:hover { background: #E0F2FE; }
+    .sources-body {
+      display: none; margin-top: 6px;
+      background: var(--sky-bg);
+      border: 1px solid #BAE6FD;
+      border-left: 3px solid var(--teal);
+      border-radius: 8px; overflow: hidden;
+    }
+    .sources-body.open { display: block; animation: fadeInUp .18s ease; }
+    .source-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-bottom: 1px solid #E0F2FE;
+      font-size: 13px;
+    }
+    .source-item:last-child { border-bottom: none; }
+    .source-item-icon { font-size: 15px; flex-shrink: 0; }
+    .source-item-name { font-weight: 500; color: var(--navy); }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex; align-items: center; gap: 10px;
+      align-self: flex-start;
+      padding: 10px 14px; background: var(--card);
+      border-radius: 16px 16px 16px 4px;
+      border-left: 3px solid var(--teal);
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      animation: bubbleIn .22s ease;
+    }
+    .typing-dots { display: flex; gap: 4px; align-items: center; }
+    .typing-dots span {
+      width: 7px; height: 7px; background: var(--text-muted);
+      border-radius: 50%; animation: dotBounce 1.2s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .typing-dots span:nth-child(2) { animation-delay: .18s; }
+    .typing-dots span:nth-child(3) { animation-delay: .36s; }
+    @keyframes dotBounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+      30%            { transform: translateY(-5px); opacity: 1; }
+    }
+    .typing-text { font-size: 12.5px; color: var(--text-muted); }
+
+    /* Chat input */
+    .chat-input-area {
+      display: flex; align-items: flex-end; gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--card); flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1; border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 14px; font-family: inherit;
+      resize: none; outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      line-height: 1.5; max-height: 100px; overflow-y: auto;
+      background: var(--surface); color: var(--text-main);
+    }
+    .chat-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+      background: var(--card);
+    }
+    .send-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: none; background: var(--blue); color: #fff; font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s, transform .1s, box-shadow .15s;
+      flex-shrink: 0; box-shadow: 0 2px 6px rgba(37,99,235,.3);
+    }
+    .send-btn:hover:not(:disabled) { background: var(--navy); box-shadow: 0 3px 10px rgba(27,58,107,.35); }
+    .send-btn:active { transform: scale(.93); }
+    .send-btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      .main { padding: 14px; }
+      .msg  { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="nexusai_logo_hd.png" alt="NexusAI" class="brand-logo-img" />
+    <span class="brand-name">NexusAI</span>
+    <span class="brand-badge">Plugin</span>
+  </div>
+  <div class="navbar-spacer"></div>
+  <div class="navbar-avatar">
+    <div class="avatar-circle">ST</div>
+    Santiago T.
+  </div>
+</nav>
+
+<main class="main">
+  <div class="page-header">
+    <div class="page-title">NexusAI — Asistente de Curso</div>
+    <div class="page-sub">Inteligencia artificial aplicada al aprendizaje universitario</div>
+  </div>
+
+  <!-- Tabs (centered via margin: 0 auto) -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('docs', this)">📚 Documentos</button>
+    <button class="tab-btn" onclick="switchTab('chat', this)">🤖 Asistente NexusAI</button>
+  </div>
+
+  <!-- Tab: Documentos -->
+  <div id="tab-docs" class="tab-panel active">
+    <div class="docs-scroll-wrap">
+      <div class="docs-inner">
+
+        <!-- Upload card -->
+        <div class="card">
+          <div class="upload-card-header">
+            <span class="upload-card-title">Cargar material del curso</span>
+          </div>
+          <p class="upload-card-sub">
+            Como docente, podés cargar aquí los archivos correspondientes a tu materia.
+            NexusAI los indexará automáticamente para que tus alumnos puedan consultarlos.
+          </p>
+
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <span class="dz-icon">☁️</span>
+            <div class="dz-text">
+              <strong>Arrastrá un archivo aquí</strong> o hacé click para seleccionar<br/>
+              <div class="dz-formats">
+                <span class="dz-format-badge">PDF</span>
+                <span class="dz-format-badge">TXT</span>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="file-input" accept=".pdf,.txt" />
+
+          <div id="selected-file-name">Ningún archivo seleccionado</div>
+
+          <button class="btn btn-gradient" id="upload-btn" onclick="uploadFile()" disabled>
+            ⬆ Subir documento
+          </button>
+
+          <div class="upload-status" id="upload-status"></div>
+
+          <div class="doc-list">
+            <div class="doc-list-label">Subidos en esta sesión</div>
+            <div class="doc-list-empty" id="doc-list-empty">Todavía no subiste ningún documento.</div>
+            <div id="doc-items"></div>
+          </div>
+        </div>
+
+        <!-- Indexed material card -->
+        <div class="card material-section">
+          <div class="material-header">
+            <span class="material-title">Material del curso</span>
+            <span class="material-count" id="material-count">—</span>
+          </div>
+          <div class="material-list" id="material-list">
+            <div class="material-loading" id="material-loading">
+              <span>Cargando documentos…</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Chat -->
+  <div id="tab-chat" class="tab-panel">
+    <div class="chat-panel-wrap">
+      <div class="chat-card">
+        <div class="chat-header">
+          <img src="nexusai_logo_hd.png" alt="NexusAI" class="chat-header-logo" />
+          <div class="chat-header-info">
+            <div class="chat-header-name">NexusAI</div>
+            <div class="chat-header-sub">Asistente inteligente de curso</div>
+          </div>
+          <div class="online-indicator">
+            <div class="online-dot"></div>
+            Online
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <div class="chat-input-area">
+          <textarea
+            class="chat-input"
+            id="chat-input"
+            placeholder="Escribí tu pregunta sobre el material del curso..."
+            onkeydown="handleChatKey(event)"
+            rows="1"
+          ></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendQuery()" title="Enviar">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const API_BASE = 'http://localhost:8000';
+  const API_KEY  = 'supersecret';
+
+  // ─── Tabs ───
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ─── Upload ───
+  const fileInput  = document.getElementById('file-input');
+  const dropZone   = document.getElementById('drop-zone');
+  const fileNameEl = document.getElementById('selected-file-name');
+  const uploadBtn  = document.getElementById('upload-btn');
+  let selectedFile = null;
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) setFile(fileInput.files[0]);
+  });
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length > 0) setFile(e.dataTransfer.files[0]);
+  });
+
+  function setFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['pdf', 'txt'].includes(ext)) {
+      setUploadStatus('Solo se aceptan archivos PDF o TXT.', 'error');
+      return;
+    }
+    selectedFile = file;
+    fileNameEl.textContent = `Archivo seleccionado: ${file.name} (${formatBytes(file.size)})`;
+    uploadBtn.disabled = false;
+    setUploadStatus('', '');
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function setUploadStatus(msg, type) {
+    const el = document.getElementById('upload-status');
+    el.textContent = msg;
+    el.className = 'upload-status' + (type ? ' ' + type : '');
+  }
+
+  async function uploadFile() {
+    if (!selectedFile) return;
+    uploadBtn.disabled = true;
+    setUploadStatus('⏳ Subiendo y procesando…', '');
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const res = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        headers: { 'X-API-Key': API_KEY },
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || `Error ${res.status}`);
+      }
+      const docName = selectedFile.name;
+      const docSize = selectedFile.size;
+      setUploadStatus(`✅ "${docName}" subido e indexado correctamente.`, 'success');
+      addDocToList(docName, docSize);
+      selectedFile = null;
+      fileNameEl.textContent = 'Ningún archivo seleccionado';
+      fileInput.value = '';
+      // Refresh indexed material list
+      loadMaterial();
+    } catch (e) {
+      if (e instanceof TypeError) {
+        setUploadStatus('No se pudo conectar con la API. Verificá que esté corriendo en localhost:8000.', 'error');
+      } else {
+        setUploadStatus(`❌ Error: ${e.message}`, 'error');
+      }
+      uploadBtn.disabled = false;
+    }
+  }
+
+  function addDocToList(name, size) {
+    const empty = document.getElementById('doc-list-empty');
+    if (empty) empty.remove();
+    const ext  = name.split('.').pop().toLowerCase();
+    const item = document.createElement('div');
+    item.className = 'doc-item';
+    item.innerHTML = `
+      <div class="doc-file-icon ${ext}">${ext === 'pdf' ? '📕' : '📄'}</div>
+      <div class="doc-meta">
+        <div class="doc-name">${name}</div>
+        <div class="doc-size">${formatBytes(size)}</div>
+      </div>
+      <span class="doc-badge">Indexado</span>
+    `;
+    document.getElementById('doc-items').appendChild(item);
+  }
+
+  // ─── Material indexado ───
+  async function loadMaterial() {
+    const list    = document.getElementById('material-list');
+    const counter = document.getElementById('material-count');
+
+    list.innerHTML = '<div class="material-loading"><span>Cargando documentos…</span></div>';
+
+    try {
+      const res = await fetch(`${API_BASE}/documents`, {
+        headers: { 'X-API-Key': API_KEY },
+      });
+
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+
+      const data = await res.json();
+      const docs = data.documents || [];
+
+      counter.textContent = `${data.total} doc${data.total !== 1 ? 's' : ''}`;
+      list.innerHTML = '';
+
+      if (docs.length === 0) {
+        list.innerHTML = '<div class="material-empty">Todavía no hay material cargado en este curso.</div>';
+        return;
+      }
+
+      docs.forEach(name => {
+        const ext  = (name.split('.').pop() || '').toLowerCase();
+        const icon = ext === 'pdf' ? '📕' : '📄';
+        const item = document.createElement('div');
+        item.className = 'material-item';
+        item.innerHTML = `
+          <span class="material-item-icon">${icon}</span>
+          <span class="material-item-name">${name}</span>
+        `;
+        list.appendChild(item);
+      });
+    } catch (e) {
+      counter.textContent = '—';
+      list.innerHTML = '<div class="material-empty">No se pudo cargar el listado. Verificá que la API esté corriendo.</div>';
+    }
+  }
+
+  // Cargar material al iniciar
+  loadMaterial();
+
+  // ─── Chat ───
+  const chatMessages = document.getElementById('chat-messages');
+  let isLoading = false;
+
+  function formatTime() {
+    const n = new Date();
+    return String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  }
+
+  function appendMessage(role, text, sources) {
+    const wrap = document.createElement('div');
+    wrap.className = `msg ${role}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+
+    const time = document.createElement('div');
+    time.className = 'msg-time';
+    time.textContent = formatTime();
+    wrap.appendChild(time);
+
+    if (role === 'assistant' && sources && sources.length > 0) {
+      wrap.appendChild(buildSourcesAccordion(sources));
+    }
+
+    chatMessages.appendChild(wrap);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return wrap;
+  }
+
+  function buildSourcesAccordion(sources) {
+    // Deduplicate filenames
+    const seen  = new Set();
+    const names = [];
+    sources.forEach(s => {
+      const name = s.filename || s.doc_id || 'Fuente';
+      if (!seen.has(name)) { seen.add(name); names.push(name); }
+    });
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'sources-accordion';
+
+    const toggle = document.createElement('button');
+    toggle.className = 'sources-toggle';
+    toggle.textContent = `📎 Ver fuentes (${names.length})`;
+
+    const body = document.createElement('div');
+    body.className = 'sources-body';
+    toggle.onclick = () => body.classList.toggle('open');
+    wrapper.appendChild(toggle);
+
+    names.forEach(name => {
+      const ext  = (name.split('.').pop() || '').toLowerCase();
+      const icon = ext === 'pdf' ? '📕' : '📄';
+      const item = document.createElement('div');
+      item.className = 'source-item';
+      item.innerHTML = `
+        <span class="source-item-icon">${icon}</span>
+        <span class="source-item-name">${name}</span>
+      `;
+      body.appendChild(item);
+    });
+
+    wrapper.appendChild(body);
+    return wrapper;
+  }
+
+  function showTypingIndicator() {
+    const el = document.createElement('div');
+    el.className = 'typing-indicator';
+    el.id = 'typing-indicator';
+    el.innerHTML = `
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+      <span class="typing-text">NexusAI está pensando…</span>
+    `;
+    chatMessages.appendChild(el);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function removeTypingIndicator() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  async function sendQuery() {
+    if (isLoading) return;
+    const input    = document.getElementById('chat-input');
+    const question = input.value.trim();
+    if (!question) return;
+
+    input.value = '';
+    input.style.height = '';
+    appendMessage('user', question);
+
+    isLoading = true;
+    document.getElementById('send-btn').disabled = true;
+    showTypingIndicator();
+
+    try {
+      const res = await fetch(`${API_BASE}/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+        body: JSON.stringify({ q: question, top_k: 5 }),
+      });
+
+      removeTypingIndicator();
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        appendMessage('assistant', `❌ Error del servidor: ${err.detail || res.status}`);
+      } else {
+        const data = await res.json();
+        appendMessage('assistant', data.answer, data.sources);
+      }
+    } catch (e) {
+      removeTypingIndicator();
+      if (e instanceof TypeError) {
+        appendMessage('assistant', 'No se pudo conectar con el asistente. Verificá que la API esté corriendo en localhost:8000.');
+      } else {
+        appendMessage('assistant', `❌ Error inesperado: ${e.message}`);
+      }
+    } finally {
+      isLoading = false;
+      document.getElementById('send-btn').disabled = false;
+    }
+  }
+
+  function handleChatKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendQuery();
+    }
+  }
+
+  document.getElementById('chat-input').addEventListener('input', function() {
+    this.style.height = '';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+
+  // ─── Init ───
+  appendMessage('assistant', 'Hola, soy NexusAI 👋 Podés preguntarme cualquier cosa sobre el material cargado en este curso.');
+</script>
+</body>
+</html>

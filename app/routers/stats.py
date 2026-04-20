@@ -46,3 +46,25 @@ def stats(_=Depends(verify_api_key)):
         "last_ingest": last_ingest,
         "status": collection_info.status,
     }
+
+
+@router.get("/documents")
+def list_documents(_=Depends(verify_api_key)):
+    client = QdrantClient(
+        host=settings.qdrant_host,
+        port=settings.qdrant_port,
+    )
+
+    points, _ = client.scroll(
+        collection_name=settings.collection_name,
+        limit=1000,
+        with_payload=True,
+    )
+
+    filenames = sorted({
+        point.payload.get("filename")
+        for point in points
+        if point.payload and point.payload.get("filename")
+    })
+
+    return {"documents": filenames, "total": len(filenames)}
